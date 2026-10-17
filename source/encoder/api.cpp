@@ -119,22 +119,22 @@ x265_encoder *x265_encoder_open(x265_param *p)
     x265_copy_params(zoneParam, p);
     x265_log(param, X265_LOG_INFO, "HEVC encoder version %s\n", PFX(version_str));
 #if ENABLE_LIBVMAF
-    if (param->sourceWidth < 3656 && param->sourceHeight < 1714) {
-        if (!param->bEnablePsnr && !param->bEnableSsim)
-            if (param->tune) {
-                if ((strcmp(param->tune, "psnr") && strcmp(param->tune, "ssim")) ||
-                     !strcmp(param->tune, "vmaf"))
-                    x265_log(param, X265_LOG_INFO, "VMAF tune version %s\n", vmaf_version());
-            } else
-                x265_log(param, X265_LOG_INFO, "VMAF tune version %s\n", vmaf_version());
-    } else {
-        if (!param->bEnablePsnr && !param->bEnableSsim)
-            if (param->tune) {
-                if ((strcmp(param->tune, "psnr") && strcmp(param->tune, "ssim")) ||
-                     !strcmp(param->tune, "vmaf"))
-                    x265_log(param, X265_LOG_INFO, "VMAF 4K tune version %s\n", vmaf_version());
-            } else
-                x265_log(param, X265_LOG_INFO, "VMAF 4K tune version %s\n", vmaf_version());
+    if (param->tune) {
+        if (!strcmp(param->tune, "vmaf")) {
+            if (param->sourceWidth < 3656 && param->sourceHeight < 1714) {
+                if (param->fpsNum <= 47000) {
+                    x265_log(param, X265_LOG_INFO, "VMAF tune/model version %s/1.0.16\n", vmaf_version());
+                } else {
+                    x265_log(param, X265_LOG_INFO, "VMAF HFR tune/model version %s/1.0.16\n", vmaf_version());
+                }
+            } else {
+                if (param->fpsNum <= 47000) {
+                    x265_log(param, X265_LOG_INFO, "VMAF 4K tune/model version %s/1.0.16\n", vmaf_version());
+                } else  {
+                    x265_log(param, X265_LOG_INFO, "VMAF 4K HFR tune/model version %s/1.0.16\n", vmaf_version());
+                }
+            }
+        }
     }
 #endif
     x265_log(param, X265_LOG_INFO, "build info %s\n", PFX(build_info_str));
