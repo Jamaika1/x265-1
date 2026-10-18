@@ -1951,9 +1951,9 @@ int load_feature(VmafContext *vmaf, const char *feature_name, VmafFeatureDiction
     return err;
 }
 
-int compute_vmaf(double* vmaf_score, char* fmt, uint32_t fpsNum, int width, int height, int bitdepth, int(*read_frame)(float *ref_data, float *main_data, float *temp_data, int stride_byte, void *user_data),
-	void *user_data, char *model_path, char *log_path, char *log_fmt, int disable_clip, int disable_avx, int enable_transform, int phone_model, int do_psnr, int do_ssim, int do_ms_ssim,
-	char *pool_method, int n_thread, int n_subsample)
+int compute_vmaf(double* vmaf_score, char* fmt, uint32_t fpsNum, int width, int height, int bitdepth, int(*read_frame)(float *ref_data, float *main_data, float *temp_data, int stride_byte,
+    void *user_data), void *user_data, char *model_path, char *log_path, char *log_fmt, int disable_clip, int disable_avx, int enable_transform, int phone_model, int do_psnr, int do_ssim,
+    int do_ms_ssim,	char *pool_method, int n_thread, int n_subsample)
 {
 	int err = 0;
 
@@ -2006,23 +2006,23 @@ int compute_vmaf(double* vmaf_score, char* fmt, uint32_t fpsNum, int width, int 
             model_path = strdup("vmaf_v1.0.16_hfr_1d5h_2160");
         }
     }
-	err = vmaf_model_load(&model, &model_cfg, model_path);
-	if (err) {
-		printf("problem loading model: %s\n", model_path);
-		goto end;
-	}
+    err = vmaf_model_load(&model, &model_cfg, model_path);
+    if (err) {
+        printf("problem loading model: %s\n", model_path);
+        goto end;
+    }
 #else
-	err = vmaf_model_load_from_path(&model, &model_cfg, model_path);
-	if (err) {
-		printf("problem loading model: %s\n", model_path);
-		goto end;
-	}
+    err = vmaf_model_load_from_path(&model, &model_cfg, model_path);
+    if (err) {
+        printf("problem loading model: %s\n", model_path);
+        goto end;
+    }
 #endif
-	err = vmaf_use_features_from_model(vmaf, model);
-	if (err) {
-		printf("problem loading feature extractors from model file: %s\n", model_path);
-		goto end;
-	}
+    err = vmaf_use_features_from_model(vmaf, model);
+    if (err) {
+        printf("problem loading feature extractors from model file: %s\n", model_path);
+        goto end;
+    }
 
 	if (do_psnr) {
 		VmafFeatureDictionary *d = NULL;
@@ -2244,7 +2244,8 @@ double x265_calculate_vmafscore(x265_param *param, x265_vmaf_data *data)
             else
                 x265_log(NULL, X265_LOG_ERROR, "Invalid format\n");
 
-            compute_vmaf(&score, (char*)pix_format, param->fpsNum, data->width, data->height, param->sourceBitDepth, read_frame, data, vcd->model_path, vcd->log_path, vcd->log_fmt, vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
+            compute_vmaf(&score, (char*)pix_format, param->fpsNum, data->width, data->height, param->sourceBitDepth, read_frame, data, vcd->model_path, vcd->log_path, vcd->log_fmt,
+                         vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
         }
     return score;
 }
@@ -2358,7 +2359,8 @@ double x265_calculate_vmaf_framelevelscore(x265_param *param, x265_vmaf_framedat
             else
                 read_frame = read_frame_10bit;
 
-            compute_vmaf(&score, (char*)pix_format, param->fpsNum, vmafframedata->width, vmafframedata->height, param->sourceBitDepth, read_frame, vmafframedata, vcd->model_path, vcd->log_path, vcd->log_fmt, vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
+            compute_vmaf(&score, (char*)pix_format, param->fpsNum, vmafframedata->width, vmafframedata->height, param->sourceBitDepth, read_frame, vmafframedata, vcd->model_path, vcd->log_path,
+                         vcd->log_fmt, vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
         }
     return score;
 }
