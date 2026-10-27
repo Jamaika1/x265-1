@@ -1951,7 +1951,7 @@ int load_feature(VmafContext *vmaf, const char *feature_name, VmafFeatureDiction
     return err;
 }
 
-int compute_vmaf(double* vmaf_score, char* fmt, uint32_t fpsNum, int width, int height, int bitdepth, int(*read_frame)(float *ref_data, float *main_data, float *temp_data, int stride_byte,
+int compute_vmaf(double* vmaf_score, char* fmt, x265_param *param, int width, int height, int bitdepth, int(*read_frame)(float *ref_data, float *main_data, float *temp_data, int stride_byte,
     void *user_data), void *user_data, char *model_path, char *log_path, char *log_fmt, int disable_clip, int disable_avx, int enable_transform, int phone_model, int do_psnr, int do_ssim,
     int do_ms_ssim,	char *pool_method, int n_thread, int n_subsample)
 {
@@ -1994,17 +1994,30 @@ int compute_vmaf(double* vmaf_score, char* fmt, uint32_t fpsNum, int width, int 
 
 #if VMAF_API_VERSION_MAJOR >= 3 && VMAF_API_VERSION_MINOR >= 2
     if (width < 3656 && height < 1714) {
-        if (fpsNum <= 47000) {
+        if (param->fpsNum <= 47000) {
             model_path = strdup("vmaf_v1.0.16_3d0h");
         } else {
             model_path = strdup("vmaf_v1.0.16_hfr_3d0h");
         }
     } else {
-        if (fpsNum <= 47000) {
-            model_path = strdup("vmaf_v1.0.16_1d5h_2160");
+#if ENABLE_HDR10_PLUS || ENABLE_HDR12_PLUS
+        if (param->internalCsp == X265_CSP_I420 || param->internalBitDepth == 10 || param->vui.colorPrimaries == 9 ||
+            param->vui.transferCharacteristics == 16 || param->vui.matrixCoeffs == 9) {
+            if (param->fpsNum <= 47000) {
+                model_path = strdup("hdr_vmaf_v1.1.8_1d5h_2160");
+            } else {
+                model_path = strdup("hdr_vmaf_v1.1.8_hfr_1d5h_2160");
+            }
         } else {
-            model_path = strdup("vmaf_v1.0.16_hfr_1d5h_2160");
+#endif
+            if (param->fpsNum <= 47000) {
+                model_path = strdup("vmaf_v1.0.16_1d5h_2160");
+            } else {
+                model_path = strdup("vmaf_v1.0.16_hfr_1d5h_2160");
+            }
+#if ENABLE_HDR10_PLUS || ENABLE_HDR12_PLUS
         }
+#endif
     }
     err = vmaf_model_load(&model, &model_cfg, model_path);
     if (err) {
@@ -2244,7 +2257,7 @@ double x265_calculate_vmafscore(x265_param *param, x265_vmaf_data *data)
             else
                 x265_log(NULL, X265_LOG_ERROR, "Invalid format\n");
 
-            compute_vmaf(&score, (char*)pix_format, param->fpsNum, data->width, data->height, param->sourceBitDepth, read_frame, data, vcd->model_path, vcd->log_path, vcd->log_fmt,
+            compute_vmaf(&score, (char*)pix_format, param, data->width, data->height, param->sourceBitDepth, read_frame, data, vcd->model_path, vcd->log_path, vcd->log_fmt,
                          vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
         }
     return score;
@@ -2359,7 +2372,7 @@ double x265_calculate_vmaf_framelevelscore(x265_param *param, x265_vmaf_framedat
             else
                 read_frame = read_frame_10bit;
 
-            compute_vmaf(&score, (char*)pix_format, param->fpsNum, vmafframedata->width, vmafframedata->height, param->sourceBitDepth, read_frame, vmafframedata, vcd->model_path, vcd->log_path,
+            compute_vmaf(&score, (char*)pix_format, param, vmafframedata->width, vmafframedata->height, param->sourceBitDepth, read_frame, vmafframedata, vcd->model_path, vcd->log_path,
                          vcd->log_fmt, vcd->disable_clip, vcd->disable_avx, vcd->enable_transform, vcd->phone_model, vcd->psnr, vcd->ssim, vcd->ms_ssim, vcd->pool, vcd->thread, vcd->subsample);
         }
     return score;
