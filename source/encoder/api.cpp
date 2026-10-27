@@ -123,16 +123,42 @@ x265_encoder *x265_encoder_open(x265_param *p)
         if (!strcmp(param->tune, "vmaf")) {
             if (param->sourceWidth < 3656 && param->sourceHeight < 1714) {
                 if (param->fpsNum <= 47000) {
-                    x265_log(param, X265_LOG_INFO, "VMAF tune/model version %s/1.0.16\n", vmaf_version());
+                    x265_log(param, X265_LOG_INFO, "VMAF SDR tune/model version %s/1.0.16\n", vmaf_version());
                 } else {
-                    x265_log(param, X265_LOG_INFO, "VMAF HFR tune/model version %s/1.0.16\n", vmaf_version());
+                    x265_log(param, X265_LOG_INFO, "VMAF SDR HFR tune/model version %s/1.0.16\n", vmaf_version());
                 }
+            } else if (param->sourceWidth >= 7680 && param->sourceHeight >= 3200) {
+#if ENABLE_HDR12_PLUS
+                if (param->internalCsp == X265_CSP_I420 && param->internalBitDepth == 12 &&
+                    param->vui.colorPrimaries == 9 && param->vui.transferCharacteristics == 17 &&
+                    param->vui.matrixCoeffs == 9) {
+                    if (param->fpsNum <= 47000) {
+                        x265_log(param, X265_LOG_INFO, "VMAF HDR 8K tune/model version %s/1.1.8\n", vmaf_version());
+                    } else  {
+                        x265_log(param, X265_LOG_INFO, "VMAF HDR 8K HFR tune/model version %s/1.1.8\n", vmaf_version());
+                    }
+                }
+#endif
             } else {
-                if (param->fpsNum <= 47000) {
-                    x265_log(param, X265_LOG_INFO, "VMAF 4K tune/model version %s/1.0.16\n", vmaf_version());
-                } else  {
-                    x265_log(param, X265_LOG_INFO, "VMAF 4K HFR tune/model version %s/1.0.16\n", vmaf_version());
+#if ENABLE_HDR10_PLUS
+                if (param->internalCsp == X265_CSP_I420 && param->internalBitDepth == 10 &&
+                    param->vui.colorPrimaries == 9 && param->vui.transferCharacteristics == 16 &&
+                    param->vui.matrixCoeffs == 9) {
+                    if (param->fpsNum <= 47000) {
+                        x265_log(param, X265_LOG_INFO, "VMAF HDR 4K tune/model version %s/1.1.8\n", vmaf_version());
+                    } else  {
+                        x265_log(param, X265_LOG_INFO, "VMAF HDR 4K HFR tune/model version %s/1.1.8\n", vmaf_version());
+                    }
+                } else {
+#endif
+                    if (param->fpsNum <= 47000) {
+                        x265_log(param, X265_LOG_INFO, "VMAF SDR 4K tune/model version %s/1.0.16\n", vmaf_version());
+                    } else  {
+                        x265_log(param, X265_LOG_INFO, "VMAF SDR 4K HFR tune/model version %s/1.0.16\n", vmaf_version());
+                    }
+#if ENABLE_HDR10_PLUS
                 }
+#endif
             }
         }
     }
